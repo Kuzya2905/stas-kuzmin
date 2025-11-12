@@ -10093,15 +10093,16 @@
                   data-field-container-res-960-value="grid"
                   data-field-widthmode-res-960-value="fixed"
                 >
-                  <div class="tn-atom">
+                  <a
+                    href="https://t.me/Barsa_T93"
+                    target="_blank"
+                    class="btn-pre-order"
+                  >
                     <img
-                      class="tn-atom__img t-img"
-                      data-original="https://static.tildacdn.com/tild3532-3736-4333-b332-623133623462/Frame_2131327799_1.svg"
                       src="https://static.tildacdn.com/tild3532-3736-4333-b332-623133623462/Frame_2131327799_1.svg"
                       alt=""
-                      imgfield="tn_img_175958412987162650"
                     />
-                  </div>
+                  </a>
                 </div>
                 <div
                   class="t396__elem tn-elem get-arrow tn-elem__1459811261175958412987725390"
@@ -18075,89 +18076,5 @@
         </form>
       </div>
     </div>
-
-    <script>
-      (() => {
-        const API_URL = "/api/form";
-        const modal = document.getElementById("preorderModal");
-        const form = document.getElementById("preorderForm");
-        const status = document.getElementById("preorderStatus");
-        const closeBtns = () =>
-          modal.querySelectorAll(".preorder-close,[data-preorder-close]");
-
-        // Открыть модалку
-        function openModal() {
-          modal.classList.add("show");
-          document.body.classList.add("no-scroll");
-          status.textContent = "";
-          form.reset();
-          setTimeout(() => form.querySelector('[name="Name"]').focus(), 0);
-        }
-        // Закрыть модалку
-        function closeModal() {
-          modal.classList.remove("show");
-          document.body.classList.remove("no-scroll");
-        }
-
-        // Клик по твоей кнопке (.btn-pre-order внутри ZeroBlock)
-        document.addEventListener("click", (e) => {
-          const btn = e.target.closest(".btn-pre-order");
-          if (btn) {
-            e.preventDefault();
-            openModal();
-          }
-        });
-
-        // Закрытия
-        modal.addEventListener("click", (e) => {
-          if (e.target === modal) closeModal(); // клик по фону
-        });
-        closeBtns().forEach((b) => b.addEventListener("click", closeModal));
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && modal.classList.contains("show"))
-            closeModal();
-        });
-
-        // Отправка формы -> Telegram через Vercel Function
-        let sending = false;
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          if (sending) return;
-          const name = form.Name.value.trim();
-          const email = form.Email.value.trim();
-          if (!name || !email) {
-            status.textContent = "Заполните имя и почту.";
-            status.style.color = "crimson";
-            return;
-          }
-
-          sending = true;
-          status.textContent = "Отправляем...";
-          status.style.color = "#555";
-
-          try {
-            const res = await fetch(API_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name, email }),
-            });
-            const data = await res.json().catch(() => ({}));
-            if (res.ok && data.ok) {
-              status.textContent = "✅ Заявка отправлена! Мы свяжемся с вами.";
-              status.style.color = "green";
-              setTimeout(closeModal, 900);
-            } else {
-              throw new Error(data.error || `HTTP ${res.status}`);
-            }
-          } catch (err) {
-            console.error(err);
-            status.textContent = "❌ Ошибка отправки. Попробуйте ещё раз.";
-            status.style.color = "crimson";
-          } finally {
-            sending = false;
-          }
-        });
-      })();
-    </script>
   </body>
 </html>
