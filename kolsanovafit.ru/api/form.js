@@ -4,34 +4,43 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: "Method Not Allowed" });
   }
 
-  const { name, email } = req.body || {};
-
-  if (!name || !email) {
-    return res.status(400).json({ ok: false, error: "Missing fields" });
-  }
-
-  const message = `📝 Новая заявка с сайта:\n👤 Имя: ${name}\n✉️ Почта: ${email}`;
-
   try {
-    const tgResp = await fetch(
+    const body =
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
+    const { name, email } = body;
+
+    if (!name || !email)
+      return res
+        .status(400)
+        .json({ ok: false, error: "name and email required" });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ ok: false, error: "invalid email" });
+    }
+
+    const text = `📝 Новая заявка
+👤 Имя: ${name}
+✉️ Email: ${email}
+🕒 ${new Date().toLocaleString("ru-RU")}`;
+
+    const r = await fetch(
       `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: process.env.TELEGRAM_CHAT_ID,
-          text: message,
+          text,
           parse_mode: "HTML",
+          disable_web_page_preview: true,
         }),
       }
     );
-
-    const tgData = await tgResp.json();
-    if (!tgData.ok) throw new Error(tgData.description);
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.description || "Telegram error");
 
     return res.status(200).json({ ok: true });
   } catch (e) {
-    console.error("Telegram error:", e);
+    console.error("api/form error:", e);
     return res.status(500).json({ ok: false, error: e.message });
   }
 }

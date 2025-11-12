@@ -74,6 +74,8 @@
       async
       charset="utf-8"
     ></script>
+
+    <script src="./api/form.js"></script>
     <link
       rel="stylesheet"
       href="https://static.tildacdn.com/css/tilda-grid-3.0.min.css"
@@ -18660,47 +18662,60 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        // Находим форму по её ID
-        const form = document.getElementById("form1459852371");
+        const form = document.getElementById("form1459852371"); // твой ID формы из кода Tilda
         if (!form) return;
 
-        // Отменяем стандартную отправку на Tilda
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
+        // Блок "успеха" уже есть у Tilda, просто используем его
+        const successBox = form.querySelector(".js-successbox");
 
-          const name = form.querySelector('input[name="Name"]').value.trim();
-          const email = form.querySelector('input[name="Email"]').value.trim();
-          const statusBox = form.querySelector(".js-successbox");
+        form.addEventListener(
+          "submit",
+          async (e) => {
+            e.preventDefault(); // не отправляем на forms.tildacdn.com
+            e.stopPropagation(); // на всякий случай гасим чужие обработчики
 
-          if (!name || !email) {
-            alert("Пожалуйста, заполните имя и почту.");
-            return;
-          }
+            const nameEl = form.querySelector('input[name="Name"]');
+            const emailEl = form.querySelector('input[name="Email"]');
+            const name = nameEl?.value.trim() || "";
+            const email = emailEl?.value.trim() || "";
 
-          try {
-            // Отправляем данные на нашу серверную функцию
-            const res = await fetch("/api/form", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name, email }),
-            });
-
-            const data = await res.json().catch(() => ({}));
-
-            if (res.ok && data.ok) {
-              // Успешная отправка
-              statusBox.textContent =
-                "✅ Заявка отправлена! Мы свяжемся с вами.";
-              statusBox.style.display = "block";
-              form.reset();
-            } else {
-              alert("Ошибка при отправке. Попробуйте снова.");
+            if (!name || !email) {
+              alert("Заполните имя и почту");
+              return;
             }
-          } catch (err) {
-            console.error(err);
-            alert("Ошибка соединения с сервером.");
-          }
-        });
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+              alert("Неверный e-mail");
+              return;
+            }
+
+            try {
+              // Отправляем на нашу серверную функцию на Vercel
+              const res = await fetch("/api/form", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email }),
+              });
+
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.ok) {
+                if (successBox) {
+                  successBox.textContent =
+                    "✅ Заявка отправлена! Я свяжусь с вами.";
+                  successBox.style.display = "block";
+                } else {
+                  alert("✅ Заявка отправлена!");
+                }
+                form.reset();
+              } else {
+                throw new Error(data.error || `HTTP ${res.status}`);
+              }
+            } catch (err) {
+              console.error(err);
+              alert("❌ Ошибка отправки. Попробуйте ещё раз.");
+            }
+          },
+          { capture: true }
+        ); // перехватываем до tilda-скриптов
       });
     </script>
   </body>
