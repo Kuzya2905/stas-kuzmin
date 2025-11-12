@@ -18660,78 +18660,61 @@
     <!-- End FB Pixel code (noscript) -->
 
     <script>
-      (function () {
-        const FORM_ID = "rec1459852371"; // твой ID формы из кода Tilda
+      (() => {
+        const API_URL = "/api/form"; // серверная функция на Vercel
+        let sending = false;
 
-        async function sendToTelegram(form) {
-          const name =
-            form.querySelector('input[name="Name"]')?.value.trim() || "";
-          const email =
-            form.querySelector('input[name="Email"]')?.value.trim() || "";
-          if (!name || !email) {
-            alert("Заполните имя и email");
-            return;
-          }
-
+        // Отправка данных в твой API
+        async function sendToTelegram(name, email) {
+          if (sending) return;
+          sending = true;
           try {
-            const res = await fetch("/api/form", {
+            const res = await fetch(API_URL, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ name, email }),
             });
             const data = await res.json().catch(() => ({}));
             if (res.ok && data.ok) {
-              const success = form.querySelector(".js-successbox");
-              if (success) {
-                success.textContent = "✅ Заявка отправлена!";
-                success.style.display = "block";
-              } else alert("✅ Заявка отправлена!");
-              form.reset();
+              alert("✅ Заявка успешно отправлена!");
             } else {
-              throw new Error(data.error || `HTTP ${res.status}`);
+              alert("❌ Ошибка отправки. Попробуйте позже.");
             }
-          } catch (e) {
-            console.error(e);
-            alert("❌ Ошибка отправки. Попробуйте ещё раз.");
+          } catch (err) {
+            console.error(err);
+            alert("⚠️ Ошибка соединения.");
+          } finally {
+            sending = false;
           }
         }
 
-        // 1) Перехватываем любые submit'ы на документе раньше Tilda
-        document.addEventListener(
-          "submit",
-          function (e) {
-            const form = e.target;
-            if (form && form.id === FORM_ID) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation(); // глушим обработчики Tilda
-              sendToTelegram(form);
-            }
-          },
-          true
-        ); // capture = true — обработчик срабатывает раньше Tilda
+        // Перехват формы Tilda, когда она появится
+        function hookTildaForm() {
+          const form = document.querySelector('[data-elem-type="form"] form');
+          if (!form || form.__hooked) return;
+          form.__hooked = true;
 
-        // 2) Когда форма появилась/перерисовалась — «обезвреживаем» её action
-        function neutralize() {
-          const f = document.getElementById(FORM_ID);
-          if (!f) return;
-          // Отменяем любые встроенные онсабмиты
-          f.onsubmit = null;
-          // Убираем отправку на Tilda, чтобы даже без JS она никуда не ушла
-          f.setAttribute("action", "");
-          f.removeAttribute("target");
-          // На всякий случай — удаляем класс, через который Tilda навешивает обработчики
-          f.classList.remove("js-form-proccess");
+          form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const name =
+              form.querySelector('input[name="Name"]')?.value.trim() || "";
+            const email =
+              form.querySelector('input[name="Email"]')?.value.trim() || "";
+            if (!name || !email) {
+              alert("Пожалуйста, заполните имя и почту.");
+              return;
+            }
+            sendToTelegram(name, email);
+          });
+
+          console.log("✅ Форма найдена и подключена!");
         }
 
-        // ждём, пока Tilda дорисует разметку
-        const mo = new MutationObserver(neutralize);
-        mo.observe(document.documentElement, {
-          childList: true,
-          subtree: true,
-        });
-        window.addEventListener("DOMContentLoaded", neutralize);
-        window.addEventListener("load", neutralize);
+        // Проверяем несколько раз, пока Tilda не вставит форму
+        const observer = new MutationObserver(hookTildaForm);
+        observer.observe(document.body, { childList: true, subtree: true });
+        window.addEventListener("DOMContentLoaded", hookTildaForm);
+        window.addEventListener("load", hookTildaForm);
       })();
     </script>
   </body>
