@@ -10093,8 +10093,8 @@
                   data-field-container-res-960-value="grid"
                   data-field-widthmode-res-960-value="fixed"
                 >
-                  <a
-                    href="https://t.me/Barsa_T93"
+                  <div
+                 
                     target="_blank"
                     class="btn-pre-order"
                   >
@@ -10102,7 +10102,7 @@
                       src="https://static.tildacdn.com/tild3532-3736-4333-b332-623133623462/Frame_2131327799_1.svg"
                       alt=""
                     />
-                  </a>
+                  </div>
                 </div>
                 <div
                   class="t396__elem tn-elem get-arrow tn-elem__1459811261175958412987725390"
@@ -18076,5 +18076,14 @@
         </form>
       </div>
     </div>
+
+    <script>
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest(".btn-pre-order");
+        if (!btn) return;
+        e.preventDefault();
+        window.open("https://t.me/Barsa_T93", "_blank");
+      });
+    </script>
   </body>
 </html>
