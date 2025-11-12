@@ -18662,60 +18662,45 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const form = document.getElementById("form1459852371"); // твой ID формы из кода Tilda
+        const form = document.getElementById("form1459852371");
         if (!form) return;
-
-        // Блок "успеха" уже есть у Tilda, просто используем его
-        const successBox = form.querySelector(".js-successbox");
 
         form.addEventListener(
           "submit",
           async (e) => {
-            e.preventDefault(); // не отправляем на forms.tildacdn.com
-            e.stopPropagation(); // на всякий случай гасим чужие обработчики
+            e.preventDefault();
+            e.stopPropagation(); // <== это важно, блокирует встроенный обработчик Tilda
 
-            const nameEl = form.querySelector('input[name="Name"]');
-            const emailEl = form.querySelector('input[name="Email"]');
-            const name = nameEl?.value.trim() || "";
-            const email = emailEl?.value.trim() || "";
+            const name = form.querySelector('input[name="Name"]').value.trim();
+            const email = form
+              .querySelector('input[name="Email"]')
+              .value.trim();
 
             if (!name || !email) {
-              alert("Заполните имя и почту");
-              return;
-            }
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-              alert("Неверный e-mail");
+              alert("Введите имя и email");
               return;
             }
 
             try {
-              // Отправляем на нашу серверную функцию на Vercel
               const res = await fetch("/api/form", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email }),
               });
 
-              const data = await res.json().catch(() => ({}));
-              if (res.ok && data.ok) {
-                if (successBox) {
-                  successBox.textContent =
-                    "✅ Заявка отправлена! Я свяжусь с вами.";
-                  successBox.style.display = "block";
-                } else {
-                  alert("✅ Заявка отправлена!");
-                }
+              if (res.ok) {
+                alert("✅ Заявка отправлена!");
                 form.reset();
               } else {
-                throw new Error(data.error || `HTTP ${res.status}`);
+                alert("❌ Ошибка при отправке. Попробуйте позже.");
               }
             } catch (err) {
               console.error(err);
-              alert("❌ Ошибка отправки. Попробуйте ещё раз.");
+              alert("⚠️ Ошибка сети. Проверьте подключение.");
             }
           },
           { capture: true }
-        ); // перехватываем до tilda-скриптов
+        ); // ключевой момент — capture:true
       });
     </script>
   </body>
