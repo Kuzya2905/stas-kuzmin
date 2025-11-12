@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <!-- Mirrored from kolsanovafit.ru/ by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 11 Nov 2025 23:56:24 GMT -->
-  <!-- Added by HTTrack --><meta
+  <meta
     http-equiv="content-type"
     content="text/html;charset=UTF-8"
   /><!-- /Added by HTTrack -->
@@ -18658,6 +18657,51 @@
         src="https://www.facebook.com/tr?id=512986862697301&amp;ev=PageView&amp;agent=pltilda&amp;noscript=1"
     /></noscript>
     <!-- End FB Pixel code (noscript) -->
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Находим форму по её ID
+        const form = document.getElementById("form1459852371");
+        if (!form) return;
+
+        // Отменяем стандартную отправку на Tilda
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const name = form.querySelector('input[name="Name"]').value.trim();
+          const email = form.querySelector('input[name="Email"]').value.trim();
+          const statusBox = form.querySelector(".js-successbox");
+
+          if (!name || !email) {
+            alert("Пожалуйста, заполните имя и почту.");
+            return;
+          }
+
+          try {
+            // Отправляем данные на нашу серверную функцию
+            const res = await fetch("/api/form", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, email }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data.ok) {
+              // Успешная отправка
+              statusBox.textContent =
+                "✅ Заявка отправлена! Мы свяжемся с вами.";
+              statusBox.style.display = "block";
+              form.reset();
+            } else {
+              alert("Ошибка при отправке. Попробуйте снова.");
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Ошибка соединения с сервером.");
+          }
+        });
+      });
+    </script>
   </body>
-  <!-- Mirrored from kolsanovafit.ru/ by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 11 Nov 2025 23:56:25 GMT -->
 </html>
